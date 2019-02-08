@@ -812,8 +812,7 @@ impl Ppu {
 
                     let pattern_color;
                     match sprite.tiles(self) {
-                        // TODO: 8x16 rendering
-                        SpriteTiles8x8(tile) | SpriteTiles8x16(tile, _) => {
+                        SpriteTiles8x8(tile) => {
                             let mut x = x - sprite.x;
                             if sprite.flip_horizontal() {
                                 x = 7 - x;
@@ -826,6 +825,30 @@ impl Ppu {
 
                             debug_assert!(x < 8, "sprite X miscalculation");
                             debug_assert!(y < 8, "sprite Y miscalculation");
+
+                            pattern_color =
+                                self.get_pattern_pixel(PatternPixelKind::Sprite, tile, x, y);
+                        }
+                        SpriteTiles8x16(tile1, tile2) => {
+                            let mut x = x - sprite.x;
+                            if sprite.flip_horizontal() {
+                                x = 7 - x;
+                            }
+
+                            let mut y = self.scanline as u8 - sprite.y;
+                            if sprite.flip_vertical() {
+                                y = 15 - y;
+                            }
+
+                            debug_assert!(x < 8, "sprite X miscalculation");
+                            debug_assert!(y < 16, "sprite Y miscalculation");
+
+                            let tile = if y < 8 {
+                                tile1
+                            } else {
+                                y -= 8;
+                                tile2
+                            };
 
                             pattern_color =
                                 self.get_pattern_pixel(PatternPixelKind::Sprite, tile, x, y);
